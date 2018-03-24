@@ -1,74 +1,89 @@
-import os
-import sys
-import json
-import urllib
-import base64
 import re
-# import requests
+import os
+from provider_files_config import provider_files
 
-def read_providers_file(path):
-    # read file..
-    providers_file = open(path)
-    return providers_file
+def parse_all_providers(provider_files):
+    all_providers = []
+    for file in provider_files:
+        file_path = os.path.join('./', 'provider_files', file['name'])
+        providers = read_and_parse_file(file_path, file['provider_type'], file['provider_subtype'])
+        all_providers += providers
+    return all_providers
 
-def parse_file(file):
+def read_and_parse_file(path, provider_type, provider_subtype):
+    file = read_file(path)
+    return parse_file(file, provider_type, provider_subtype)
+
+def read_file(path):
+    with open(path) as f:
+        file = [line for line in f]
+    return file
+
+def parse_file(file, provider_type, provider_subtype):
+    file_includes_doctor_name = includes_doctor_name(file)
     counter = 0
     providers = []
     data = {}
     for line in file:
         if line == '\n':
+            data['type'] = provider_type
+            data['subtype'] = provider_subtype
             providers.append(data)
             data = {}
             counter = 0
         else:
-            if parse_line(line, counter):
-                attribute, value = parse_line(line, counter)
-                data[attribute] = value
+            parse_line(line, data, counter, file_includes_doctor_name)
             counter += 1
     return providers
 
-def parse_line(line, counter):
-    if counter == 0:
-        attribute = 'name'
-    elif counter == 1:
-        attribute = 'street_address'
-    elif counter == 2:
-        attribute = 'city/state/zip'
-    elif counter == 3:
-        attribute = 'phone'
+def includes_doctor_name(file):
+    if not re.compile(r'\w+').search(file[0]):
+        return includes_doctor_name(file[1:])
     else:
-        attribute = 'something else'
-    value = line.strip()
-    return [attribute, value]
+        if re.compile(r'^[a-z]+\s[a-z]+(\s[a-z]+)+$', re.IGNORECASE).match(file[0]) and re.compile(r'^[a-z]+\s*\w*', re.IGNORECASE).match(file[1]):
+            return True
+        else:
+            return False
+
+def parse_line(line, data, counter, file_includes_doctor_name):
+    if counter == 0:
+        if file_includes_doctor_name:
+            data['doctor_name'] = parse_doctor_name(line)
+        else:
+            data['provider_name'] = line.strip()
+    elif counter == 1:
+        if file_includes_doctor_name:
+            data['provider_name'] = line.strip()
+    else:
+        check_regex(line, data)
+    return data
+
+def parse_doctor_name(line):
+    names = line.strip().split(' ')
+    return ' '.join(names[1:] + [names[0]])
 
 def check_regex(line, data):
     if re.compile('(?i)PO BOX|(?i)p.o. box').match(line):
-        print ('it\'s a po box')
         return data
-    if re.compile('^STE').match(line):
-        data['street_address'] += ' ' + line.strip()
-    if re.compile(r'\s\d{5}$').search(line):
-        city, state, zip_code = line.replace(',', '').split(' ')
+    if re.compile(r'^\d+\s\w+').match(line):
+        data['street_address'] = line.strip()
+    elif re.compile('^STE').match(line):
+        if 'street_address' in data:
+            data['street_address'] += ' ' + line.strip()
+    elif re.compile(r'\s\d{5}$').search(line):
+        city, state_and_zip = line.split(',')
+        state, zip_code = state_and_zip.strip().split(' ')
         data['city'] = city
         data['state'] = state
         data['zip_code'] = zip_code
-    if re.compile(r'(\+\d{1,2}\s)?\(?\d{3}\)?[\s.-]\d{3}[\s.-]\d{4}').search(line):
+    elif re.compile(r'(\+\d{1,2}\s)?\(?\d{3}\)?[\s.-]\d{3}[\s.-]\d{4}').search(line):
         data['phone'] = line.strip()
-    if re.compile('(?i)Critical access provider').match(line):
+    elif re.compile('(?i)Critical access provider').match(line):
         data['critical_access_provider'] = True
+    elif re.compile('(?i)Specialty').match(line):
+        data['specialty'] = line.replace(':', '').replace('Specialty', '').strip()
     else:
-        print ('no match on ' + line)
-        return data
-    print (data)
+        data['other_info'] = line.strip()
     return data
 
-
-    # handle other regex matching
-
-# my_file = read_providers_file('./dental_clinic_mn.txt')
-# parse_file(my_file)
-
-check_regex('MINNETONKA, MN 55305', {})
-check_regex('(952) 935-8420', {})
-check_regex('P.o. BOX 209', {})
-check_regex('critical access provider', {})
+print (parse_all_providers(provider_files))
