@@ -2,7 +2,7 @@
   "name": "medicaid-provider-scraper",
   "version": "1.0.0",
   "description": "",
-  "main": "server.js",
+  "main": "server/server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js"
@@ -18,6 +18,10 @@
   },
   "homepage": "https://github.com/aespringfield/medicaid-provider-scraper#readme",
   "dependencies": {
-    "express": "^4.16.3"
+    "angular": "^1.6.9",
+    "body-parser": "^1.18.2",
+    "express": "^4.16.3",
+    "pg": "^7.4.1",
+    "pool": "^0.4.1"
   }
 }
