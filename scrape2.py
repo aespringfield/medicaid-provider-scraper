@@ -42,17 +42,22 @@ def parse_line(line, counter):
     return [attribute, value]
 
 def check_regex(line, data):
-    if re.compile('PO BOX|p.o. box').match(line):
+    if re.compile('(?i)PO BOX|(?i)p.o. box').match(line):
+        print ('it\'s a po box')
         return data
     if re.compile('^STE').match(line):
         data['street_address'] += ' ' + line.strip()
-    if re.compile('\s\d{5}$').match(line):
+    if re.compile(' \d{5}$').search(line):
         city, state, zip_code = line.replace(',', '').split(' ')
         data['city'] = city
         data['state'] = state
         data['zip_code'] = zip_code
+    if re.compile('(\+\d{1,2}\s)?\(?\d{3}\)?[\s.-]\d{3}[\s.-]\d{4}').search(line):
+        data['phone'] = line.strip()
+    if re.compile('(?i)Critical access provider').match(line):
+        data['critical_access_provider'] = True
     else:
-        print ('no match')
+        print ('no match on ' + line)
         return data
     print (data)
     return data
@@ -64,3 +69,6 @@ def check_regex(line, data):
 # parse_file(my_file)
 
 check_regex('MINNETONKA, MN 55305', {})
+check_regex('(952) 935-8420', {})
+check_regex('P.o. BOX 209', {})
+check_regex('critical access provider', {})
