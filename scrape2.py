@@ -3,6 +3,7 @@ import sys
 import json
 import urllib
 import base64
+import re
 # import requests
 
 def read_providers_file(path):
@@ -20,36 +21,30 @@ def parse_file(file):
             data = {}
             counter = 0
         else:
-            attribute, value = parse_line(line, counter)
-            data[attribute] = value
+            if parse_line(line, counter):
+                attribute, value = parse_line(line, counter)
+                data[attribute] = value
             counter += 1
-    print providers
+    return providers
 
 def parse_line(line, counter):
     if counter == 0:
         attribute = 'name'
-        value = line.strip()
-
+    elif counter == 1:
+        attribute = 'street_address'
+    elif counter == 2:
+        attribute = 'city/state/zip'
+    elif counter == 3:
+        attribute = 'phone'
+    else:
+        attribute = 'something else'
+    value = line.strip()
     return [attribute, value]
 
-#         loop over line and regex for data...
-
-
-#         data['name'] = title
-#         data['address1'] = blah1
-#         data['address2'] = blah2
-
-#     dentists.append(data)
-
-#     return dentists
-
-
-# def main():
-#     file = read_txt_file('dental_clinic')
-#     parse_file(file)
-
-# if __name__ == '__main__':
-#     main()
+def check_regex(line):
+    if re.compile('PO BOX|p.o. box').match(line):
+        return
+    # handle other regex matching
 
 my_file = read_providers_file('./dental_clinic_mn.txt')
 parse_file(my_file)
