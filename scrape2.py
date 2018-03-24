@@ -47,12 +47,12 @@ def check_regex(line, data):
         return data
     if re.compile('^STE').match(line):
         data['street_address'] += ' ' + line.strip()
-    if re.compile(' \d{5}$').search(line):
+    if re.compile(r'\s\d{5}$').search(line):
         city, state, zip_code = line.replace(',', '').split(' ')
         data['city'] = city
         data['state'] = state
         data['zip_code'] = zip_code
-    if re.compile('(\+\d{1,2}\s)?\(?\d{3}\)?[\s.-]\d{3}[\s.-]\d{4}').search(line):
+    if re.compile(r'(\+\d{1,2}\s)?\(?\d{3}\)?[\s.-]\d{3}[\s.-]\d{4}').search(line):
         data['phone'] = line.strip()
     if re.compile('(?i)Critical access provider').match(line):
         data['critical_access_provider'] = True
