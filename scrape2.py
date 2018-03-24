@@ -41,10 +41,26 @@ def parse_line(line, counter):
     value = line.strip()
     return [attribute, value]
 
-def check_regex(line):
+def check_regex(line, data):
     if re.compile('PO BOX|p.o. box').match(line):
-        return
+        return data
+    if re.compile('^STE').match(line):
+        data['street_address'] += ' ' + line.strip()
+    if re.compile('\s\d{5}$').match(line):
+        city, state, zip_code = line.replace(',', '').split(' ')
+        data['city'] = city
+        data['state'] = state
+        data['zip_code'] = zip_code
+    else:
+        print ('no match')
+        return data
+    print (data)
+    return data
+
+
     # handle other regex matching
 
-my_file = read_providers_file('./dental_clinic_mn.txt')
-parse_file(my_file)
+# my_file = read_providers_file('./dental_clinic_mn.txt')
+# parse_file(my_file)
+
+check_regex('MINNETONKA, MN 55305', {})
