@@ -75,7 +75,7 @@ def parse_doctor_name(line):
 def check_regex(line, data):
     if re.compile('(?i)PO BOX|(?i)p.o. box').match(line):
         return data
-    if re.compile(r'^\d+\s\w+').match(line):
+    if re.compile(r'^\d{2,}(.+ ){2,}').match(line):
         data['street_address'] = line.strip()
     elif re.compile('^STE').match(line):
         if 'street_address' in data:
