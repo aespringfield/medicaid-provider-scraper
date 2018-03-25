@@ -19,8 +19,10 @@
   "homepage": "https://github.com/aespringfield/medicaid-provider-scraper#readme",
   "dependencies": {
     "angular": "^1.6.9",
+    "angular-route": "^1.6.9",
     "body-parser": "^1.18.2",
     "express": "^4.16.3",
+    "ngmap": "^1.18.4",
     "pg": "^7.4.1",
     "pool": "^0.4.1"
   }
