@@ -1,20 +1,19 @@
-let myApp = angular.module('myApp', ['ngRoute']);
+const myApp = angular.module('myApp', ['ngRoute','ngMap']);
 
 myApp.config(function($routeProvider, $locationProvider){
    $locationProvider.hashPrefix('');
    console.log('myApp --config');
    $routeProvider
-   .when('/home',{
+   .when('/',{
        templateUrl: '/views/home.html',
        controller: 'HomeController as hc',
-   }).when('/info',{
+   }).when('/home',{
+    templateUrl: '/views/home.html',
+    controller: 'HomeController as hc',})
+    .when('/info',{
        templateUrl: '/views/info.html',
        controller: 'InfoController as ic'
-   })
-   .when('/',{
-    templateUrl: '/views/home.html',
-    controller: 'HomeController as hc',
-}).otherwise({
-       redirect: 'home',
+   }).otherwise({
+       redirect: '/home',
    })
 });

@@ -1,3 +1,5 @@
-myApp.controller('HomeController', function(){
+myApp.controller('HomeController', function(ngMap){
     console.log('HomeController created')
+
+    
 })
