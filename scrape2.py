@@ -1,6 +1,13 @@
 import re
 import os
+import sys
 from provider_files_config import provider_files
+
+import database.types as types_model
+import database.subtypes as subtypes_model
+import database.providers as providers_model
+import database.type_providers as type_providers_model
+import database.subtype_types as subtype_types_model
 
 def parse_all_providers(provider_files):
     all_providers = []
@@ -51,9 +58,12 @@ def parse_line(line, data, counter, file_includes_doctor_name):
             data['doctor_name'] = parse_doctor_name(line)
         else:
             data['provider_name'] = line.strip()
+
     elif counter == 1:
         if file_includes_doctor_name:
             data['provider_name'] = line.strip()
+        else:
+            check_regex(line, data)
     else:
         check_regex(line, data)
     return data
@@ -86,4 +96,26 @@ def check_regex(line, data):
         data['other_info'] = line.strip()
     return data
 
-print (parse_all_providers(provider_files))
+
+def insert_into_db(providers):
+    counter = 0
+    for provider in providers:
+        counter += 1
+        if counter % 100 == 0:
+            print ('loading db: {}'.format(counter))
+
+        # this should be in a transaction... meh
+        type_id = types_model.upsert_type(provider)
+        subtype_id = subtypes_model.upsert_subtype(provider)
+        provider_id = providers_model.upsert_provider(provider)
+        providers_model.update_provider(provider, provider_id[0])
+        type_providers_model.upsert_type_provider(type_id[0], provider_id[0])
+        subtype_types_model.upsert_subtype_type(subtype_id[0], type_id[0])
+
+
+def main():
+    providers = parse_all_providers(provider_files)
+    insert_into_db(providers)
+
+if __name__ == '__main__':
+    main()
